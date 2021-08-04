@@ -1,4 +1,6 @@
 import json
+# yuk, use secrets
+import random
 
 from datetime import datetime
 from hashlib import sha256
@@ -11,31 +13,33 @@ class Blockchain(object):
         # if we're creating a new blockchain object, we're creating a new blockchain
         # In this case, we want to create the genesis block
         print('Creating genesis block.')
-        self.new_block()
+        self.chain.append(self.new_block())
 
-    def new_block(self, previous_hash=None):
+    def new_block(self):
         #generates new block and adds it to the chain
         # do we have to process the pending transactions in any way before they are added?
         # assuming that this is where the Merkel tree comes in later
+
+        previous_block = self.last_block()
         block = {
             'index': len(self.chain),
             'timestamp': datetime.utcnow().isoformat(),
             'transactions': self.pending_transactions,
-            'previous_hash': previous_hash,
+            'previous_hash': previous_block["hash"] if previous_block else None,
+            'nonce': format(random.getrandbits(64), "x"),
         }
 
         # let's hash this new block, and add the hash to the block
         block_hash = self.hash(block)
         block["hash"] = block_hash
-
+        # print(block["hash"])
         # clear out the list of pending transactiions
         # is there processing that needs to go on here before we clear these out?
-        self.pending_transactions = []
+        # self.pending_transactions = []
 
         #add this block to the chain
-        self.chain.append(block)
-
-        print(f"Created block {block['index']}")
+        # self.chain.append(block)
+        # print(block["nonce"])
         return block
 
     @staticmethod
@@ -57,3 +61,21 @@ class Blockchain(object):
             "sender": sender,
             "amount": amount,
         })
+
+    @staticmethod
+    def valid_block_hash(block):
+        return block["hash"].startswith("0000")
+
+    def proof_of_work(self):
+        while True:
+            new_block = self.new_block()
+            if self.valid_block_hash(new_block):
+                break
+        
+        self.pending_transactions = []
+
+        self.chain.append(new_block)
+        print("Found new valid block at: ", new_block)
+    
+
+        
