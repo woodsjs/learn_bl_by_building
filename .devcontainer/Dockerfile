@@ -4,7 +4,7 @@
 ARG VARIANT="3.9"
 FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
 
-RUN pip3 install requests
+RUN pip3 install requests pynacl ipython
 
 # [Option] Install Node.js
 ARG INSTALL_NODE="true"
